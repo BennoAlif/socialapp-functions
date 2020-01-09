@@ -2,7 +2,8 @@ const { admin, db } = require("../util/admin");
 const firebase = require("firebase");
 const {
   validateRegisterData,
-  validateLoginData
+  validateLoginData,
+  reduceUserDetails
 } = require("../util/validators");
 
 const config = require("../util/config");
@@ -101,6 +102,47 @@ exports.login = (req, res) => {
             "The password is invalid or the user does not have a password."
         });
       } else return res.status(500).json({ error: err.code });
+    });
+};
+
+exports.addUserDetails = (req, res) => {
+  let userDetails = reduceUserDetails(req.body);
+
+  db.doc(`/users/${req.user.handle}`)
+    .update(userDetails)
+    .then(() => {
+      return res.json({ message: "Details added successfully" });
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({ error: err.code });
+    });
+};
+
+exports.getAuthenticatedUser = (req, res) => {
+  let userData = {};
+
+  db.doc(`/users/${req.user.handle}`)
+    .get()
+    .then(doc => {
+      if (doc.exists) {
+        userData.credentials = doc.data();
+        return db
+          .collection("likes")
+          .where("userHandle", "==", req.user.handle)
+          .get();
+      }
+    })
+    .then(data => {
+      userData.likes = [];
+      data.forEach(doc => {
+        userData.likes.push(doc.data());
+      });
+      return res.json(userData);
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({ error: err.code });
     });
 };
 
