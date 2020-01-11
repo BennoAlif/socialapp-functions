@@ -1,7 +1,13 @@
 const functions = require("firebase-functions");
 const express = require("express");
 
-const { getAllScreams, postOneScream } = require("./handlers/screams");
+const {
+  getAllScreams,
+  postOneScream,
+  getScream,
+  commentOnScream
+} = require("./handlers/screams");
+
 const {
   register,
   login,
@@ -17,11 +23,15 @@ const app = express();
 app.get("/screams", getAllScreams);
 // Create data
 app.post("/screams", FBAuth, postOneScream);
+// Get scream
+app.get("/screams/:screamId", getScream);
+// Commenting on scream
+app.post("/screams/:screamId/comment", FBAuth, commentOnScream);
 // Upload user image
 app.post("/user/image", FBAuth, uploadImage);
 // User details
 app.post("/user", FBAuth, addUserDetails);
-
+// Get data user
 app.get("/user", FBAuth, getAuthenticatedUser);
 
 // Register User
